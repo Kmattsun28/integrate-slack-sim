@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtualenv
+env/
+.venv/
+venv/
+ENV/
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.*
+env_template.txt
+
+# Docker
+*.pid
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Output
+output/
+
+# Slack tokens or secrets (例: configファイル)
+config.json
+
+# その他
+*.swp
+*.swo
+*.txt
