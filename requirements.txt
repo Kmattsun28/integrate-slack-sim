@@ -1,0 +1,65 @@
+# ===================================================================
+# Python環境の依存関係ファイル (依存関係解決済み)
+# ===================================================================
+
+# LLM & NLP
+# Gemma 3に対応するため、transformersのバージョンを更新
+# tokenizersのバージョン指定は削除し、依存関係から自動解決させる
+transformers==4.50.2
+torch==2.3.1
+accelerate==0.32.1
+safetensors==0.4.3
+triton==2.3.1; sys_platform != 'win32' and sys_platform != 'darwin'
+
+# Slack連携
+slack-bolt==1.18.1
+slack-sdk==3.36.0
+
+# データ処理
+pandas==2.2.2
+numpy==1.26.4
+yfinance==0.2.65
+
+# Web & API
+aiohttp==3.9.5
+aiosignal==1.3.1
+attrs==23.2.0
+certifi==2024.7.4
+charset-normalizer==3.3.2
+frozenlist==1.4.1
+idna==3.7
+multidict==6.0.5
+requests==2.32.3
+urllib3==2.2.2
+yarl==1.9.4
+
+# スケジューリング
+apscheduler==3.10.4
+pytz==2024.1
+tzdata==2024.1; sys_platform == 'win32'
+
+# 設定ファイル・ユーティリティ
+python-dotenv==1.0.1
+pyyaml==6.0.1
+click==8.1.7
+Jinja2==3.1.4
+MarkupSafe==2.1.5
+packaging==24.1
+filelock==3.15.4
+fsspec==2024.6.1
+platformdirs==4.2.2
+six==1.16.0
+python-dateutil==2.9.0.post0
+
+# GPU & システム監視
+gputil==1.4.0
+psutil==5.9.8
+
+# その他
+cryptography==42.0.8
+cffi==1.16.0
+pycparser==2.22
+soupsieve==2.5
+sympy==1.12
+tqdm==4.66.4
+typing-extensions==4.12.2
