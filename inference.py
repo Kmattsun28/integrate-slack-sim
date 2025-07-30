@@ -1,3 +1,4 @@
+# inference.py (修正後)
 import sys
 import os
 import gc
@@ -35,34 +36,28 @@ def run_inference(start: dt.datetime, current_assets: dict, transaction_file: st
         model, processor = load_model(model_id="google/gemma-3-12b-it")
     except Exception as e:
         print(f"モデルのロードに失敗しました: {e}")
+        # ★ 失敗した場合はPortfolioオブジェクトを返す
         return portfolio
     
+    # モデルやプロセッサがNoneの場合もエラーとして扱う
+    if model is None or processor is None:
+        print("モデルまたはプロセッサが正常にロードされませんでした。")
+        return portfolio
+
     # 出力ディレクトリの設定
-    # now_jst_str = (dt.datetime.now() + dt.timedelta(hours=9)).strftime("%Y%m%d_%H%M%S")
     if output_dir is None:
         base_dir = os.path.join(os.getcwd(), "data/real_out")
         now_str = current_time_utc.strftime("%Y%m%d_%H%M%S")
         output_dir = os.path.join(base_dir, now_str)
     os.makedirs(output_dir, exist_ok=True) 
     
-    # シミュレーション履歴の記録用
-    # simulation_log = os.path.join(output_dir, "simulation_log.txt")
-    # with open(simulation_log, "w", encoding="utf-8") as f:
-    #     f.write(f"シミュレーション開始: {start} (UTC)\n")
-    #     f.write(f"初期資産: {portfolio}\n\n")
-
-
     # プロンプト生成
     printgreen("[STEP2]create_prompt")
-    # 通貨ペアごとに自動的に適切な通貨フィルターを適用
     prompt, pair_current_rates = create_prompt(current_time_utc, symbols, portfolio, currencies=None, transaction_file=transaction_file)
     if pair_current_rates is None:
         printgreen("レート取得に失敗したため、推論をスキップします。")
-        exit(1)
-        # with open(simulation_log, "a", encoding="utf-8") as f:
-        #     f.write(f"{current_time_utc} (UTC): レート取得失敗\n")
-        # current_time_utc += dt.timedelta(hours=1)
-        # continue
+        # ★ 失敗した場合はNoneを返すように統一
+        return None
 
     # プロンプト保存
     prompt_path = os.path.join(output_dir, "prompt.txt")
@@ -81,10 +76,9 @@ def run_inference(start: dt.datetime, current_assets: dict, transaction_file: st
     # 戻り値のチェック
     if response_data is None or response_data[0] is None:
         printgreen("推論に失敗しました。終了します。")
-        exit(1)
-        # ログに記録
+        # ★ 失敗した場合はNoneを返す
+        return None
 
-    # タプルから値を取り出す
     response, saved_path = response_data
     
     if response is not None:
@@ -92,29 +86,26 @@ def run_inference(start: dt.datetime, current_assets: dict, transaction_file: st
         print(f"保存先: {saved_path}")
     else:
         print("処理中にエラーが発生しました")
+        return None
         
     # レスポンスから意思決定を抽出
     decisions = llm_strategy.extract_decisions(response)
 
     if decisions is None:
         printgreen("取引指示が抽出できませんでした。")
-        exit(1)
+        # ★ 有効な指示がない場合は空リストを返す
+        return []
 
     print("================================")
     print(f"抽出された取引指示: {decisions}")
     print("================================")
     
-    # メモリ管理
-    # gc.collect()
-    # if torch.cuda.is_available():
-    #     torch.cuda.empty_cache()
-    
-    # # モデルのメモリ解放
-    # del model
-    # del processor
-    # gc.collect()
-    # if torch.cuda.is_available():
-    #     torch.cuda.empty_cache()
+    # メモリ管理（サブプロセス実行の場合、これは必須ではないが念のため）
+    del model
+    del processor
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
     return decisions
 
@@ -128,7 +119,6 @@ if __name__ == "__main__":
 
     start_utc = dt.datetime.utcnow()
     
-    # 初期資産（JPY: 10万円）
     initial_assets = {
         "JPY": 100000.0,
         "USD": 0.0,
@@ -144,17 +134,29 @@ if __name__ == "__main__":
         transaction_file=args.transaction_file,
         output_dir=args.output_dir
     )
-    printgreen("推論結果:")
-    for decision in out:
-        printgreen(f"  - 行動: {decision.get('action')}, 通貨ペア: {decision.get('symbol')}, 量: {decision.get('quantity')}")
+
+    # --- ▼エラーハンドリングを強化▼ ---
+    if isinstance(out, list):
+        printgreen("推論結果:")
+        if out:
+            for decision in out:
+                action = decision.get('action', 'N/A')
+                symbol = decision.get('symbol', 'N/A')
+                quantity = decision.get('quantity', 'N/A')
+                printgreen(f"  - 行動: {action}, 通貨ペア: {symbol}, 量: {quantity}")
+        else:
+            printgreen("  - 有効な取引指示は見つかりませんでした。")
+    else:
+        # 推論に失敗した場合（PortfolioオブジェクトやNoneが返された場合）
+        printgreen("推論プロセスでエラーが発生したため、結果を表示できません。")
+        printgreen("上記のログを確認してください。")
+    # --- ▲ここまで▲ ---
+
     # GPUメモリ解放後、プロセス終了
-    import gc
     gc.collect()
     try:
-        import torch
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-    except ImportError:
+    except (ImportError, NameError):
         pass
-    import sys
     sys.exit(0)

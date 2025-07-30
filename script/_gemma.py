@@ -5,7 +5,6 @@ from transformers import AutoProcessor, Gemma3ForConditionalGeneration
 
 # モデルを事前にロードする関数
 def load_model(model_id="google/gemma-3-27b-it", cache_dir="/mnt/bigdata/88_HuggingFaceCache"):
-# def load_model(model_id="google/gemma-3-27b-it", cache_dir="/home/aoi_ucl/.cache/huggingface"):
     """
     Gemmaモデルとプロセッサをロードする
     
@@ -65,7 +64,7 @@ def run_inference_with_loaded_model(model, processor, prompt, output_path=None):
         messages = [
             {
                 "role": "system",
-                "content": [{"type": "text", "text": "You are a helpful assistant."}]
+                "content": [{"type": "text", "text": "You are a very talented currency trader."}]
             },
             {
                 "role": "user",
