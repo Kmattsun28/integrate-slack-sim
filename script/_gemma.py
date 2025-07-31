@@ -5,6 +5,7 @@ from transformers import AutoProcessor, Gemma3ForConditionalGeneration
 
 # モデルを事前にロードする関数
 def load_model(model_id="google/gemma-3-27b-it", cache_dir="/mnt/bigdata/88_HuggingFaceCache"):
+
     """
     Gemmaモデルとプロセッサをロードする
     
@@ -105,7 +106,7 @@ def run_inference_with_loaded_model(model, processor, prompt, output_path=None):
         return None, None
 
 # 既存の関数（後方互換性のため残す）
-def run_inference_on_single_prompt(prompt_path, model_id="google/gemma-3-27b-it", output_path=None, cache_dir="/mnt/bigdata/88_HuggingFaceCache", 
+def run_inference_on_single_prompt(prompt_path, model_id="google/gemma-3-12b-it", output_path=None, cache_dir="/mnt/bigdata/88_HuggingFaceCache", 
                                    model=None, processor=None):
     """
     指定されたプロンプトファイルに対してGemmaモデルで推論を実行し、結果を保存
